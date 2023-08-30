@@ -9,14 +9,14 @@ This project focuses on the design and development of a unique screensaver appli
 
 ### Dependencies:
 To run the code, you'll need to install a few dependencies. Here's what you'll need:
-'''
+```
 sudo apt install libsdl2-2.0-0
 sudo apt install libsdl2-dev
-'''
+```
 
 ### Compile:
 To compile and run the code you will need to do the following:
-'''
+```
 g++ main.cpp -o <executable_name> -lSDL2 -fopenmp
 ./<executable_name> <number_of_circles_to_generate>
-'''
+```
