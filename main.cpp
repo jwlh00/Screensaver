@@ -10,6 +10,7 @@
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
 int NUM_CIRCLES = 100;  // Default number of circles, can be modified via command line
+int global_num_threads = 0; 
 
 // Struct representing a circle with position, size, velocity, and color properties
 struct Circle {
@@ -103,7 +104,31 @@ void move_circles_sequential() {
     }
 }
 
+// Move circles based on their velocity using parallel processing
+void move_circles_parallel() {
+    #pragma omp parallel
+    {
+        #pragma omp for schedule(dynamic, 10)
+        for (int i = 0; i < NUM_CIRCLES; ++i) {
+            Circle &c = circles[i];
+            int new_x = c.x + c.dx;
+            int new_y = c.y + c.dy;
 
+            // Check for boundary collision
+            if (new_x < 0 || new_x > SCREEN_WIDTH) {
+                c.dx = -c.dx;  // Reverse x-direction
+                new_x = c.x + c.dx; // Update new_x after reversing direction
+            }
+            if (new_y < 0 || new_y > SCREEN_HEIGHT) {
+                c.dy = -c.dy;  // Reverse y-direction
+                new_y = c.y + c.dy; // Update new_y after reversing direction
+            }
+            
+            c.x = new_x;
+            c.y = new_y;
+        }
+    }
+}
 
 // Main loop for the sequential screensaver
 int main_sequential() {
@@ -113,6 +138,12 @@ int main_sequential() {
     
     bool running = true; // Flag to keep track of the running state
     SDL_Event e;
+
+    // Variables for FPS tracking
+    int frameCount = 0;
+    int lastTime = SDL_GetTicks(), currentTime;
+    float fps;
+
     while (running) {
         while (SDL_PollEvent(&e) != 0) {
             // Check for quit event to exit the loop
@@ -134,6 +165,18 @@ int main_sequential() {
 
         // Update the screen with the new render
         SDL_RenderPresent(renderer);
+
+        // FPS tracking logic
+        frameCount++;
+        currentTime = SDL_GetTicks();
+        
+        if (currentTime > lastTime + 1000) {  // update every second
+            fps = frameCount / ((currentTime - lastTime) / 1000.f);
+            std::cout << "FPS: " << fps << std::endl;
+
+            lastTime = currentTime;
+            frameCount = 0;
+        }
     }
 
     // Clean up resources
@@ -143,6 +186,62 @@ int main_sequential() {
     return 0;
 }
 
+
+// Main loop for the parallel screensaver
+int main_parallel() {
+    SDL_Init(SDL_INIT_VIDEO); // Initialize SDL video subsystem
+    SDL_Window* window = SDL_CreateWindow("Screensaver Parallel", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED); // Create a new renderer
+
+    bool running = true; // Flag to keep track of the running state
+    SDL_Event e;
+
+    // Variables for FPS tracking
+    int frameCount = 0;
+    int lastTime = SDL_GetTicks(), currentTime;
+    float fps;
+
+    while (running) {
+        while (SDL_PollEvent(&e) != 0) {
+            // Check for quit event to exit the loop
+            if (e.type == SDL_QUIT) {
+                running = false;
+            }
+        }
+
+        // Clear the screen
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+
+        // Move the circles and draw them using parallel processing
+        move_circles_parallel();
+        for (const Circle& c : circles) {
+            SDL_SetRenderDrawColor(renderer, c.color.r, c.color.g, c.color.b, c.color.a);
+            SDL_RenderDrawCircle(renderer, c.x, c.y, c.radius);
+        }
+
+        // Update the screen with the new render
+        SDL_RenderPresent(renderer);
+
+        // FPS tracking logic
+        frameCount++;
+        currentTime = SDL_GetTicks();
+        
+        if (currentTime > lastTime + 1000) {  // update every second
+            fps = frameCount / ((currentTime - lastTime) / 1000.f);
+            std::cout << "FPS: " << fps << std::endl;
+
+            lastTime = currentTime;
+            frameCount = 0;
+        }
+    }
+
+    // Clean up resources
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    return 0;
+}
 
 // Main entry point for the program
 int main(int argc, char* argv[]) {
@@ -158,6 +257,7 @@ int main(int argc, char* argv[]) {
     }
     initialize_circles(); // Initialize circles based on NUM_CIRCLES value
 
+    // Choose which version to run: sequential or parallel
     return main_sequential();
-
+    // return main_parallel();
 }
