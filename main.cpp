@@ -1,3 +1,15 @@
+/*
+Universidad del Valle de Guatemala
+Computacion paralela y distribuida
+
+Version 2 del screensaver, paralelismo implementado en openmp
+
+Integrantes:
+
+Roberto Rios, 20979.
+Jun Woo Lee, 20358.
+*/
+
 #include <SDL2/SDL.h>
 #include <omp.h>
 #include <vector>
