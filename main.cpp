@@ -19,10 +19,10 @@ Jun Woo Lee, 20358.
 #include <string>
 
 // Screen dimensions
-const int SCREEN_WIDTH = 800;
-const int SCREEN_HEIGHT = 600;
-int NUM_CIRCLES = 100;  // Default number of circles, can be modified via command line
-int global_num_threads = 0; 
+const int SCREEN_WIDTH = 640;
+const int SCREEN_HEIGHT = 480;
+int NUM_CIRCLES = 100;  // Default number of circles, can be modified with args
+int global_num_threads = 0;
 
 // Struct representing a circle with position, size, velocity, and color properties
 struct Circle {
