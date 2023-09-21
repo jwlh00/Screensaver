@@ -120,7 +120,7 @@ void move_circles_sequential() {
 void move_circles_parallel() {
     #pragma omp parallel
     {
-        #pragma omp for schedule(dynamic, 10)
+        #pragma omp for schedule(static)
         for (int i = 0; i < NUM_CIRCLES; ++i) {
             Circle &c = circles[i];
             int new_x = c.x + c.dx;
